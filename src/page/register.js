@@ -1,38 +1,67 @@
 import React, {Component} from 'react'
 import logo from '../asets/logo.png'
+import {Link} from 'react-router-dom'
+import {Row, Col, Form, FormGroup, Label, Input} from 'reactstrap'
 class Register extends Component{
+    constructor(props){
+        super(props)
+        this.state = {
+            user:'',
+            email: '',
+            password:''
+        }
+    }
+    register = (e) =>{
+        e.preventDefault()
+
+    }
     render(){
         return(
             <>
-                <div className="page">
-                    <div className="side-left">
-                        <div class="darker">
-                            <div className="words"> Book is a window to the world</div>
-                            <div className="wm"> Photo by ???</div>
+                <Row className="h-100 no-gutters">
+                    <Col xs="8" className="h-100 side-left w-100">
+                        <div className='d-flex flex-column justify-content-between darker w-100 h-100'>
+                            <div className="p-5 font-weight-bold display-3 text-white"> Book is a window to the world</div>
+                            <div className="p-5 text-white"> Photo by by Mark Pan4ratte on Unsplas</div>
                         </div>
-                    </div>
-                    <div className="side-right">
-                        <div className="nav">
-                            <img src={logo} alt="logo"/>
+                    </Col>
+                    <Col xs="4" className='h-100 w-100 d-flex flex-column justify-content-between '>
+                        <div className='d-flex justify-content-end'>
+                            <img className='p-3' src={logo} alt="logo"/>
                         </div>
-                        <div className="form">
-                            <div className="login">SIGN UP</div>
-                            <div className="hi">Hi, Welcome to My Library</div>
-                            <form className="form-input">
-                                <input className="user" type="text" placeholder="Username"/>
-                                <input className="email" type="email" placeholder="Email"/>
-                                <input className="password"type="password" placeholder="Password"/>
-                                <div className="button">
-                                <input type="submit" className="signup-b" value="SIGN UP"/>
-                                <input type="submit" className="login-b" value="LOG IN"/>
-                            </div>
-                            </form>   
+                        <div className='flex-grow-1 d-flex justify-content-center align-items-center'>
+                            <Form className='w-100 p-5'>
+                                <h1>Register</h1>
+                                <p>Hi, Welcome to MyLibrary</p>
+                                <FormGroup>
+                                    <Label className='w-100'>
+                                        <Input onChange={e => this.setState({user: e.target.value})} type="text" placeholder="Username"/>
+                                    </Label>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label className='w-100'>
+                                        <Input onChange={e => this.setState({email: e.target.value})} type="email" placeholder="Email"/>
+                                    </Label>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label className='w-100'>
+                                        <Input onChange={e => this.setState({password: e.target.value})} type="password" placeholder="Password"/>
+                                    </Label>
+                                </FormGroup>
+                                <div className='d-flex flex-row justify-content-between mt-2'>
+                                    <Input onClick={this.register} type="submit" className=' w-50 mt-2 mr-2 text-white bg-secondary' value="SIGN UP"/>
+                                    <Link className='w-50 ml-2 btn' to={{pathname: '/'}}>
+                                        <Input type="submit" className='' value="LOG IN"/>
+                                    </Link>
+                                </div>
+                            </Form>
                         </div>
-                        <div className="disclimer">
-
+                        <div className='d-flex flex-column p-3 text-muted'>
+                            <div>By signing up, you agree to Book’s</div>
+                            <div className='text-dark'>Terms and Conditions &amp; Privacy Policy</div>
                         </div>
-                    </div>
-                </div>
+                    </Col>
+                </Row>
             </>
         )
     }

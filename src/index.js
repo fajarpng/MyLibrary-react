@@ -1,15 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import 'bootstrap/dist/css/bootstrap.min.css'
 import './asets/style.css';
-//import App from './App';
-//import Detail from './page/detail';
-import Register from './page/register'
+import App from './App';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Register />
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );

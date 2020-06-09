@@ -17,9 +17,17 @@ class Register extends Component{
             search:'',
             showPrev: true,
             showNext: false,
-            isAvail: true
+            isAvail: true,
+            title: '',
+            desc: '',
+            id_genre: 0,
+            id_author: 0,
+            cover: ''
         }
         this.toggleModal = this.toggleModal.bind(this)
+    }
+    change = (e) =>{
+        this.setState({[e.target.name]: e.target.value})
     }
     toggleModal(){
         this.setState({
@@ -57,7 +65,25 @@ class Register extends Component{
         if(books.data.pageInfo.page >= books.data.pageInfo.totalPage){
             this.setState({showNext: false})
         }
-        console.log(books.book)
+    }
+    async addBook () {
+        const {REACT_APP_URL} = process.env
+        const data = {
+            title: this.state.title,
+            description: this.state.desc,
+            id_genre: this.state.id_genre,
+            id_author: this.state.id_author,
+            id_status: 1,
+            image: this.state.cover
+        }
+        const url = `${REACT_APP_URL}books`
+        await axios.put(url, data).then( (response) => {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+           })
+        this.props.history.push(`/home`)
     }
     async componentDidMount(){
         const param = qs.parse(this.props.location.search.slice(1))
@@ -164,20 +190,24 @@ class Register extends Component{
                 <Modal isOpen={this.state.showModal}>
                     <ModalHeader className='h1'>Add Books</ModalHeader>
                     <ModalBody>
-                        <h6>Title</h6>
-                        <Input type='text' className='mb-2 shadow-none' value={this.state.title} />
+                    <h6>Title</h6>
+                        <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change}/>
                         <h6>Description</h6>
-                        <Input type='text' className='mb-3 shadow-none' value={this.state.desc}/>
+                        <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change}/>
+                        <h6>Author</h6>
+                        <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
                         <h6>Genre</h6>
+                        <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
+                        {/* <h6>Genre</h6>
                         <select className="w-50 mb-3 list-group border-0 shadow-none">
                             <option className="list-group-item border-0 bg-light">Genre</option>
                         </select>
                         <h6>Author</h6>
                         <select className="w-50 mb-2 list-group border-0 shadow-none">
                             <option className="list-group-item bg-light">Author</option>
-                        </select>
+                        </select> */}
                         <h6>Cover Image</h6>
-                        <Input type='file' className='mb-2'/>
+                        <Input type='file' name='cover' className='mb-2' onChange={this.change}/>
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick=''>Add Book</Button>

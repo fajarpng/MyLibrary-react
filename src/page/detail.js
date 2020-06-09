@@ -18,9 +18,15 @@ class Register extends Component{
             author: props.location.state.author,
             cover: props.location.state.cover,
             genre: props.location.state.genre,
+            id_genre: 0,
+            id_author: 0,
             updated: []
         }
+        this.updateBook = this.updateBook.bind(this)
         this.deleteBook = this.deleteBook.bind(this)
+    }
+    change = (e) =>{
+        this.setState({[e.target.name]: e.target.value})
     }
     home = (e) =>{
         e.preventDefault()
@@ -29,19 +35,31 @@ class Register extends Component{
     }
     async updateBook () {
         const {REACT_APP_URL} = process.env
-        const books = await axios.patch(`${REACT_APP_URL}books/${this.state.id}`)
-        const {updated} = books.dataBooks
-        this.setState({updated})
-        console.log({updated})
+        const data = {
+            title: this.state.title,
+            description: this.state.desc,
+            id_genre: this.state.id_genre,
+            id_author: this.state.id_author,
+            id_status: 1
+        }
+        const url = `${REACT_APP_URL}books/${this.state.id}`
+        await axios.patch(url, data).then( (response) => {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+           })
+        this.setState({showSuccess: !this.state.showSuccess})
+        this.setState({showEdit: !this.state.showEdit})
     }
     async deleteBook(){
         const {REACT_APP_URL} = process.env
         await axios.delete(`${REACT_APP_URL}books/${this.state.id}`)
         this.setState({showSuccess: !this.state.showSuccess})
-        this.setState({showDelete: !this.state.showDelete})
+        this.setState({showEdit: !this.state.showEdit})
     }
     async componentDidMount(){
-        // await this.updateBook()
+        console.log(this.state.updated)
     }
     render(){
         return(
@@ -77,25 +95,32 @@ class Register extends Component{
                 <Modal isOpen={this.state.showEdit}>
                     <ModalHeader className='h1'>Edit Books</ModalHeader>
                     <ModalBody>
+                    {this.state.updated.map((books, index) => ( 
+                        books.title
+                    ))}
                         <h6>Title</h6>
-                        <Input type='text' className='mb-2 shadow-none' value={this.state.title}/>
+                        <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change} value={this.state.title}/>
                         <h6>Description</h6>
-                        <Input type='text' className='mb-3 shadow-none' value={this.state.desc}/>
+                        <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change} value={this.state.desc}/>
+                        <h6>Author</h6>
+                        <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
                         <h6>Genre</h6>
+                        <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
+                        {/* <h6>Genre</h6>
                         <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_genre: e.target.value})}/>
-                        {/* <select className="w-50 mb-3 list-group border-0 shadow-none">
+                        <select className="w-50 mb-3 list-group border-0 shadow-none">
                             <option className="list-group-item border-0 bg-light">Genre</option>
-                        </select> */}
+                        </select>
                         <h6>Author</h6>
                         <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_author: e.target.value})}/>
-                        {/* <select className="w-50 mb-2 list-group border-0 shadow-none">
+                        <select className="w-50 mb-2 list-group border-0 shadow-none">
                             {this.state.data.map((author, index) => (
                                 <option className="list-group-item bg-light">{author.author}</option>
                             ))}
                         </select> */}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="primary" onClick=''>Edit Book</Button>
+                        <Button color="primary" onClick={this.updateBook}>Edit Book</Button>
                         <Button color="secondary" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Cancel</Button>
                     </ModalFooter>
                 </Modal>
@@ -112,9 +137,9 @@ class Register extends Component{
                     </ModalFooter>
                 </Modal>
 
-                {/* Delete Succes Modal */}
+                {/*Succes Modal */}
                 <Modal isOpen={this.state.showSuccess}>
-                    <ModalHeader className='h1'>Delete success</ModalHeader>
+                    <ModalHeader className='h1'>Success</ModalHeader>
                     <ModalBody className='d-flex justify-content-center align-items-center'>
                         <img className='centang' src={centang} alt='SuccessImage'/>
                     </ModalBody>

@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
-import cover from '../asets/cover.png'
 import {Row, Col, Input, Navbar, Button,
     Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap'
+import axios from 'axios'
 import centang from '../asets/centang.png'
 
 class Register extends Component{
@@ -17,6 +17,7 @@ class Register extends Component{
             status: props.location.state.status,
             author: props.location.state.author,
             cover: props.location.state.cover,
+            genre: props.location.state.genre,
             data: []
         }
     }
@@ -25,17 +26,26 @@ class Register extends Component{
         
         this.props.history.push('/home')
     }
+    async updateBook () {
+        const {REACT_APP_URL} = process.env
+        const books = await axios.get(`${REACT_APP_URL}books/${this.state.id}`)
+        const {data} = books.data
+        this.setState({data})
+        console.log({data})
+    }
+    async componentDidMount(){
+    }
     render(){
         return(
             <>
                 <Row className="h-50 w100 no-gutters">
-                    <Col className='h-100 bg-cover' xs='12'>
+                    <Col className='h-100 bg-cover' style={{backgroundImage: `url(${this.state.cover})`}} xs='12'>
                         <div className='h-100 darker'>
                             <Navbar class='d-flex justify-content-between w-100 p-3'>
-                                <Button className="p-2 btn-light" onClick={()=> this.props.history.goBack()}>Back</Button>
+                                <Button className="p-2 btn-warning text-white" onClick={()=> this.props.history.goBack()}>Back</Button>
                                 <div className='text-white d-flex'>
-                                    <Button className="p-2 btn-light mr-2" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Edit</Button>
-                                    <Button className="p-2 btn-light ml-2" onClick={() => this.setState({showDelete: !this.state.showDelete})}>Delete</Button>
+                                    <Button className="p-2 btn-success pl-3 pr-3 mr-2" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Edit</Button>
+                                    <Button className="p-2 btn-danger ml-2" onClick={() => this.setState({showDelete: !this.state.showDelete})}>Delete</Button>
                                 </div>
                             </Navbar>
                             <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix' src={this.state.cover} alt="cover" />
@@ -44,7 +54,7 @@ class Register extends Component{
                 </Row>
                 <Row className="w100 no-gutters mb-5 ml-5 mt-3">
                     <Col xs='9'>
-                        <div className="badge badge-pill badge-warning text-white">Novel</div>
+                        <div className="badge badge-pill badge-warning text-white">{this.state.genre} </div>
                         <div className="h1"> {this.state.title} </div>
                         <div className="text-success h5"> {this.state.status} </div>
                         <div className="h6"> {this.state.author} </div>
@@ -60,17 +70,21 @@ class Register extends Component{
                     <ModalHeader className='h1'>Edit Books</ModalHeader>
                     <ModalBody>
                         <h6>Title</h6>
-                        <Input type='text' className='mb-2'/>
+                        <Input type='text' className='mb-2 shadow-none' value={this.state.title}/>
                         <h6>Description</h6>
-                        <Input type='text' className='mb-2'/>
-                        <ul className="mb-2 list-group">
-                            <li className="list-group-item border-0 bg-light">Genre</li>
-                        </ul>
-                        <ul className="mb-2 list-group">
-                            <li className="list-group-item border-0 bg-light">Author</li>
-                        </ul>
-                        <h6>Cover Image</h6>
-                        <Input type='file' className='mb-2'/>
+                        <Input type='text' className='mb-3 shadow-none' value={this.state.desc}/>
+                        <h6>Genre</h6>
+                        <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_genre: e.target.value})}/>
+                        {/* <select className="w-50 mb-3 list-group border-0 shadow-none">
+                            <option className="list-group-item border-0 bg-light">Genre</option>
+                        </select> */}
+                        <h6>Author</h6>
+                        <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_author: e.target.value})}/>
+                        {/* <select className="w-50 mb-2 list-group border-0 shadow-none">
+                            {this.state.data.map((author, index) => (
+                                <option className="list-group-item bg-light">{author.author}</option>
+                            ))}
+                        </select> */}
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick=''>Edit Book</Button>

@@ -12,13 +12,20 @@ html, body, #root {
   background: rgba(0, 0, 0, 0.5);
 }
 .bg-cover{
-  background: url(covernya.png);
+  background-size: cover;
+  background-position: center;
 }
 .z-pd {
   z-index: 2;
 }
 .z-pt {
   z-index: 3;
+}
+.fit-box{
+  object-fit: none;
+  object-position: center;
+  max-height: 150px;
+  width: 100%;
 }
 .b-shadow {
   box-shadow: 2px 5px 5px rgba(0,0,0,0.3);

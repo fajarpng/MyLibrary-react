@@ -21,11 +21,6 @@ class Register extends Component{
         }
         this.toggleModal = this.toggleModal.bind(this)
     }
-    search = () =>{
-        if(`${this.state.search}` !== ''){
-            this.props.history.push(`?search=${this.state.search}`)
-        }
-    }
     toggleModal(){
         this.setState({
             showModal: !this.state.showModal
@@ -99,7 +94,7 @@ class Register extends Component{
                                     </div>
                                     <div className="w-50 d-flex flex-row">
                                         <Input onChange={e => this.setState({search: e.target.value})} className="p-2 rounded-pill shadow-none" placeholder="Search book..."/>
-                                        <Button onClick={this.search} className='rounded-pill ml-2'>Search</Button>
+                                        <Button onClick={()=>this.getBooks({...params, search: this.state.search})} className='rounded-pill ml-2'>Search</Button>
                                     </div>
                                     <div className="d-flex flex-row">
                                         <img className="icon" src={logo} alt="logo"/>

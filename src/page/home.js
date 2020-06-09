@@ -57,6 +57,7 @@ class Register extends Component{
         if(books.data.pageInfo.page >= books.data.pageInfo.totalPage){
             this.setState({showNext: false})
         }
+        console.log(books.book)
     }
     async componentDidMount(){
         const param = qs.parse(this.props.location.search.slice(1))

@@ -18,8 +18,9 @@ class Register extends Component{
             author: props.location.state.author,
             cover: props.location.state.cover,
             genre: props.location.state.genre,
-            data: []
+            updated: []
         }
+        this.deleteBook = this.deleteBook.bind(this)
     }
     home = (e) =>{
         e.preventDefault()
@@ -28,12 +29,19 @@ class Register extends Component{
     }
     async updateBook () {
         const {REACT_APP_URL} = process.env
-        const books = await axios.get(`${REACT_APP_URL}books/${this.state.id}`)
-        const {data} = books.data
-        this.setState({data})
-        console.log({data})
+        const books = await axios.patch(`${REACT_APP_URL}books/${this.state.id}`)
+        const {updated} = books.dataBooks
+        this.setState({updated})
+        console.log({updated})
+    }
+    async deleteBook(){
+        const {REACT_APP_URL} = process.env
+        await axios.delete(`${REACT_APP_URL}books/${this.state.id}`)
+        this.setState({showSuccess: !this.state.showSuccess})
+        this.setState({showDelete: !this.state.showDelete})
     }
     async componentDidMount(){
+        // await this.updateBook()
     }
     render(){
         return(
@@ -99,7 +107,7 @@ class Register extends Component{
                         <h5 className='ml-4'>Are you sure?</h5>
                     </ModalBody>
                     <ModalFooter>
-                        <Button className='btn-danger' onClick={() => this.setState({showSuccess: !this.state.showSuccess})}>Delete</Button>
+                        <Button className='btn-danger' onClick={this.deleteBook}>Delete</Button>
                         <Button className='' onClick={() => this.setState({showDelete: !this.state.showDelete})}>Cancel</Button>
                     </ModalFooter>
                 </Modal>

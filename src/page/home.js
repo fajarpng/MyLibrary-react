@@ -4,20 +4,22 @@ import pp from '../asets/img.jpg'
 import axios from 'axios'
 import {Link} from 'react-router-dom'
 import qs from 'querystring'
+import centang from '../asets/centang.png'
 import {Row, Col, Input, Navbar, Card, CardBody, CardImg, Button,
-        Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap'
+        Modal, ModalHeader, ModalBody, ModalFooter, Form} from 'reactstrap'
 
 class Register extends Component{
     constructor(props){
         super(props)
         this.state = {
             showModal: false,
+            showPrev: true,
+            showNext: false,
+            showSuccess: false,
+            isAvail: true,
             data: [],
             pageInfo: [],
             search:'',
-            showPrev: true,
-            showNext: false,
-            isAvail: true,
             title: '',
             desc: '',
             id_genre: 0,
@@ -25,6 +27,8 @@ class Register extends Component{
             cover: ''
         }
         this.toggleModal = this.toggleModal.bind(this)
+        this.addBook = this.addBook.bind(this)
+        this.toggleSuccess = this.toggleSuccess.bind(this)
     }
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
@@ -32,6 +36,11 @@ class Register extends Component{
     toggleModal(){
         this.setState({
             showModal: !this.state.showModal
+        })
+    }
+    toggleSuccess(){
+        this.setState({
+            showSuccess: !this.state.showSuccess
         })
     }
     async getBooks(params){
@@ -66,19 +75,23 @@ class Register extends Component{
             this.setState({showNext: false})
         }
     }
-    async addBook () {
+    async addBook (event) {
+        event.preventDefault()
         const {REACT_APP_URL} = process.env
-        const data = {
-            title: this.state.title,
-            description: this.state.desc,
-            id_genre: this.state.id_genre,
-            id_author: this.state.id_author,
-            id_status: 1,
-            image: this.state.cover
-        }
+        const data = new FormData()
+        data.append('image', this.state.cover)
+        data.set('title', this.state.title)
+        data.set('description', this.state.desc)
+        data.set('id_genre', this.state.id_genre)
+        data.set('id_author', this.state.id_author)
+        data.set('id_status', 1)
+
         const url = `${REACT_APP_URL}books`
-        await axios.put(url, data).then( (response) => {
+        await axios.post(url, data).then( (response) => {
             console.log(response);
+            this.setState({showModal: false})
+            this.getBooks()
+            this.setState({showSuccess: true})
           })
           .catch(function (error) {
             console.log(error);
@@ -189,29 +202,42 @@ class Register extends Component{
                 {/* Add Books Modal */}
                 <Modal isOpen={this.state.showModal}>
                     <ModalHeader className='h1'>Add Books</ModalHeader>
-                    <ModalBody>
-                    <h6>Title</h6>
-                        <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change}/>
-                        <h6>Description</h6>
-                        <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change}/>
-                        <h6>Author</h6>
-                        <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
-                        <h6>Genre</h6>
-                        <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
-                        {/* <h6>Genre</h6>
-                        <select className="w-50 mb-3 list-group border-0 shadow-none">
-                            <option className="list-group-item border-0 bg-light">Genre</option>
-                        </select>
-                        <h6>Author</h6>
-                        <select className="w-50 mb-2 list-group border-0 shadow-none">
-                            <option className="list-group-item bg-light">Author</option>
-                        </select> */}
-                        <h6>Cover Image</h6>
-                        <Input type='file' name='cover' className='mb-2' onChange={this.change}/>
+                    <Form>
+                        <ModalBody>
+                            <h6>Title</h6>
+                            <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change}/>
+                            <h6>Description</h6>
+                            <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change}/>
+                            <h6>Author</h6>
+                            <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
+                            <h6>Genre</h6>
+                            <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
+                            {/* <h6>Genre</h6>
+                            <select className="w-50 mb-3 list-group border-0 shadow-none">
+                                <option className="list-group-item border-0 bg-light">Genre</option>
+                            </select>
+                            <h6>Author</h6>
+                            <select className="w-50 mb-2 list-group border-0 shadow-none">
+                                <option className="list-group-item bg-light">Author</option>
+                            </select> */}
+                            <h6>Cover Image</h6>
+                            <Input type='file' name='cover' className='mb-2' onChange={(e) => this.setState({cover: e.target.files[0]})}/>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button color="primary" onClick={this.addBook}>Add Book</Button>
+                            <Button color="secondary" onClick={this.toggleModal}>Cancel</Button>
+                        </ModalFooter>
+                    </Form>
+                </Modal>
+
+                {/*Succes Modal */}
+                <Modal isOpen={this.state.showSuccess}>
+                    <ModalHeader className='h1'>Success</ModalHeader>
+                    <ModalBody className='d-flex justify-content-center align-items-center'>
+                        <img className='centang' src={centang} alt='SuccessImage'/>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="primary" onClick=''>Add Book</Button>
-                        <Button color="secondary" onClick={this.toggleModal}>Cancel</Button>
+                        <Button className='btn-success' onClick={this.toggleSuccess}>OK</Button>
                     </ModalFooter>
                 </Modal>
             </>

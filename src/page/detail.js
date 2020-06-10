@@ -56,7 +56,6 @@ class Register extends Component{
         const {REACT_APP_URL} = process.env
         await axios.delete(`${REACT_APP_URL}books/${this.state.id}`)
         this.setState({showSuccess: !this.state.showSuccess})
-        this.setState({showEdit: !this.state.showEdit})
     }
     async componentDidMount(){
         console.log(this.state.updated)

@@ -2,6 +2,8 @@ import React, {Component} from 'react'
 import logo from '../asets/logo.png'
 import {Link} from 'react-router-dom'
 import {Row, Col, Form, FormGroup, Label, Input} from 'reactstrap'
+import axios from 'axios'
+
 class Register extends Component{
     constructor(props){
         super(props)
@@ -10,10 +12,25 @@ class Register extends Component{
             email: '',
             password:''
         }
+        this.register = this.register.bind(this)
     }
-    register = (e) =>{
+    register = async (e) =>{
         e.preventDefault()
-
+        const {REACT_APP_URL} = process.env
+        const data = {
+            name: this.state.user,
+            email: this.state.email,
+            password: this.state.password,
+            id_role: 1
+        }
+        const url = `${REACT_APP_URL}users`
+        await axios.post(url, data).then( (response) => {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log(error);
+           })
+        this.props.history.push(`/home`)
     }
     render(){
         return(

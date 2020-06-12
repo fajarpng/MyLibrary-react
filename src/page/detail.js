@@ -2,9 +2,10 @@ import React, {Component} from 'react'
 import {Row, Col, Input, Navbar, Button,
     Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap'
 import axios from 'axios'
+import Swal from 'sweetalert2'
 import centang from '../asets/centang.png'
 
-class Register extends Component{
+class Detail extends Component{
     constructor(props){
         super(props)
         this.state = {
@@ -18,9 +19,8 @@ class Register extends Component{
             author: props.location.state.author,
             cover: props.location.state.cover,
             genre: props.location.state.genre,
-            id_genre: 0,
-            id_author: 0,
-            updated: []
+            data: [],
+            genres: []
         }
         this.updateBook = this.updateBook.bind(this)
         this.deleteBook = this.deleteBook.bind(this)
@@ -38,27 +38,47 @@ class Register extends Component{
         const data = {
             title: this.state.title,
             description: this.state.desc,
-            id_genre: this.state.id_genre,
-            id_author: this.state.id_author,
+            genre: this.state.genre,
+            author: this.state.author,
             id_status: 1
         }
         const url = `${REACT_APP_URL}books/${this.state.id}`
         await axios.patch(url, data).then( (response) => {
             console.log(response);
+            this.setState({showSuccess: !this.state.showSuccess})
+            this.setState({showEdit: !this.state.showEdit})
           })
           .catch(function (error) {
             console.log(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `${error.response.data.msg}`,
+              })
            })
-        this.setState({showSuccess: !this.state.showSuccess})
-        this.setState({showEdit: !this.state.showEdit})
     }
     async deleteBook(){
         const {REACT_APP_URL} = process.env
         await axios.delete(`${REACT_APP_URL}books/${this.state.id}`)
         this.setState({showSuccess: !this.state.showSuccess})
     }
-    async componentDidMount(){
-        console.log(this.state.updated)
+    async getAutor () {
+        const {REACT_APP_URL} = process.env
+        const author = await axios.get(`${REACT_APP_URL}authors`)
+        const {data} = author.data
+        this.setState({data})
+        console.log(this.state.data)
+    }
+    async getGenre () {
+        const {REACT_APP_URL} = process.env
+        const Genre = await axios.get(`${REACT_APP_URL}genres`)
+        const {data} = Genre.data
+        this.setState({genres: {data}})
+        console.log(this.state.genres.data)
+    }
+    async componentDidMount () {
+        await this.getGenre()
+        await this.getAutor()
     }
     render(){
         return(
@@ -94,29 +114,23 @@ class Register extends Component{
                 <Modal isOpen={this.state.showEdit}>
                     <ModalHeader className='h1'>Edit Books</ModalHeader>
                     <ModalBody>
-                    {this.state.updated.map((books, index) => ( 
-                        books.title
-                    ))}
                         <h6>Title</h6>
                         <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change} value={this.state.title}/>
                         <h6>Description</h6>
                         <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change} value={this.state.desc}/>
-                        <h6>Author</h6>
-                        <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
                         <h6>Genre</h6>
-                        <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
-                        {/* <h6>Genre</h6>
-                        <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_genre: e.target.value})}/>
-                        <select className="w-50 mb-3 list-group border-0 shadow-none">
-                            <option className="list-group-item border-0 bg-light">Genre</option>
-                        </select>
+                        <Input type='text' name='genre' className='mb-3 shadow-none' onChange={this.change} value={this.state.genre}/>
+                        {/* <select name='genre' className="w-50 mb-2 list-group border-0 shadow-none" onChange={this.change} value={this.state.genre}>
+                            {this.state.genres.data.map((o, index) => (
+                                <option className="list-group-item bg-light">{o.genre}</option>
+                            ))}
+                        </select> */}
                         <h6>Author</h6>
-                        <Input type='text' className='mb-3 shadow-none' onChange={(e) => this.setState({id_author: e.target.value})}/>
-                        <select className="w-50 mb-2 list-group border-0 shadow-none">
+                        <select name='author' className="w-50 mb-2 list-group border-0 shadow-none" onChange={this.change} value={this.state.author}>
                             {this.state.data.map((author, index) => (
                                 <option className="list-group-item bg-light">{author.author}</option>
                             ))}
-                        </select> */}
+                        </select> 
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={this.updateBook}>Edit Book</Button>
@@ -151,4 +165,4 @@ class Register extends Component{
     }
 }
 
-export default Register
+export default Detail

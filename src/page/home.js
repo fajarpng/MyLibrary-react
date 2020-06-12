@@ -1,8 +1,9 @@
 import React, {Component} from 'react'
-import logo from '../asets/logo.png'
-import pp from '../asets/img.jpg'
+import logo from '../asets/logo-white.png'
+import Slider from './carousel'
 import axios from 'axios'
 import {Link} from 'react-router-dom'
+import Swal from 'sweetalert2'
 import qs from 'querystring'
 import centang from '../asets/centang.png'
 import {Row, Col, Input, Navbar, Card, CardBody, CardImg, Button,
@@ -22,8 +23,8 @@ class Register extends Component{
             search:'',
             title: '',
             desc: '',
-            id_genre: 0,
-            id_author: 0,
+            genre: '',
+            author: '',
             cover: ''
         }
         this.toggleModal = this.toggleModal.bind(this)
@@ -82,8 +83,8 @@ class Register extends Component{
         data.append('image', this.state.cover)
         data.set('title', this.state.title)
         data.set('description', this.state.desc)
-        data.set('id_genre', this.state.id_genre)
-        data.set('id_author', this.state.id_author)
+        data.set('genre', this.state.genre)
+        data.set('author', this.state.author)
         data.set('id_status', 1)
 
         const url = `${REACT_APP_URL}books`
@@ -94,7 +95,12 @@ class Register extends Component{
             this.setState({showSuccess: true})
           })
           .catch(function (error) {
-            console.log(error);
+            console.log(error.response.data);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `${error.response.data.msg}`,
+              })
            })
         this.props.history.push(`/home`)
     }
@@ -108,26 +114,16 @@ class Register extends Component{
         params.search = ''
         return(
             <>
-                <Row className='h-100 w-100'>
-                    <Col className=' h-100 w-100' xs='2'>
-                        <div className='bg-light ps-fixed z-pt h-100 p-0 d-flex flex-column justify-content-between align-items-center b-shadow'>
-                            <div className="m-5 w-100 d-flex flex-column justify-content-center align-items-center">
-                                <img className="rounded-circle img-profile" src={pp} alt="profile picture"/>
-                                <div className="h6 mt-3"></div>
-                            </div>
-                            <ul className="w-100 mb-5 h-100 d-flex flex-column list-group">
-                                <li role="button" className="pl-3" onClick=''>History</li>
-                                <li role="button" className="pl-3 mt-3" onClick=''>Explore</li>
-                                <li role="button" className="pl-3 mt-3 font-weight-bold" onClick={this.toggleModal}>Add book+</li>
-                            </ul>
-                        </div>
-                    </Col>
-                    <Col className='h-100 w-100 pl-4 d-flex flex-column' xs='10'>
+                    <div className='h-100 w-100 d-flex flex-column' xs='12'>
                         <Row xs='1' className='w-100'>
                             <Col className='w-100 h-10' xs='12'>
-                                <Navbar className='w-100 b-shadow d-flex flex-row ps-fixed z-pd bg-light'>
-                                    <div className="ml-3 d-flex flex-row">
-                                        <Button className='btn-light dropdown-toggle' data-toogle='dropdown'>All Genres</Button>
+                                <Navbar className='w-100 b-shadow d-flex flex-row ps-fixed z-pd bg-dark'>
+                                    <img className="icon logo" src={logo} alt="logo"/>
+                                    <div className="ml-2 d-flex flex-row">
+                                        <Link to='/home' className="text-decoration-none nav-link text-light">Home</Link>
+                                        <Link to='/genre' className="text-decoration-none nav-link text-light">Genre</Link>
+                                        <Link to='/author' className="text-decoration-none nav-link text-light">Author</Link>
+                                        {/* <Button className='btn-light dropdown-toggle' data-toogle='dropdown'>All Genres</Button> */}
                                     <ul className="d-flex flex-row list-group ">
                                         {/* <li className="ml-3 list-group-item border-0 bg-light" role='button'>All Genres</li> */}
                                     </ul>
@@ -137,13 +133,21 @@ class Register extends Component{
                                         <Button onClick={()=>this.getBooks({...params, search: this.state.search})} className='rounded-pill ml-2'>Search</Button>
                                     </div>
                                     <div className="d-flex flex-row">
-                                        <img className="icon" src={logo} alt="logo"/>
-                                        <div className="ml-3 h5 align-self-end">MyLibrary</div>
+                                        <Link to='/' className="pl-3 text-decoration-none nav-link text-light">Login</Link>
+                                        <Link to='/register' className="pl-3 text-decoration-none nav-link text-light ">Sign Up</Link>
                                     </div>
                                 </Navbar>
                             </Col>
                         </Row>
-                        <Row xs='3' className='w-100 ml-2 mr-2 mb-4 mt-5 card-deck'>
+                        <Row className=''>
+                            <Col xs='12' className='mt-5 p-0 w-100'>
+                                <Slider className='w-100 p-0'/>
+                            </Col>
+                        </Row>
+                        <div className='w-auto ml-4'>
+                                <Button className='btn-dark mt-3' onClick={this.toggleModal}>Add</Button>
+                        </div>
+                        <Row xs='4' className='w-100 mb-4 card-deck'>
                             {this.state.data.map((books, index) => ( 
                                 <Link className='text-decoration-none'to={{
                                     pathname: `/detail/${books.id}`,
@@ -171,7 +175,7 @@ class Register extends Component{
                                 </Link>
                             ))}
                         </Row>
-                        <Row className='mt-5 mb-5 ml-4 d-flex flex-column'>
+                        <Row className='mt-5 mb-5 d-flex flex-column'>
                         {!this.state.isAvail && 
                                 (<Col className='h5'>Sorry, No result</Col>)
                             }
@@ -196,9 +200,7 @@ class Register extends Component{
                         </div>
                         </Col>
                     </Row>
-                    </Col>
-                </Row>
-
+                </div>
                 {/* Add Books Modal */}
                 <Modal isOpen={this.state.showModal}>
                     <ModalHeader className='h1'>Add Books</ModalHeader>
@@ -208,10 +210,10 @@ class Register extends Component{
                             <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change}/>
                             <h6>Description</h6>
                             <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change}/>
-                            <h6>Author</h6>
-                            <Input type='text' name='id_genre' className='mb-3 shadow-none' onChange={this.change}/>
                             <h6>Genre</h6>
-                            <Input type='text' name='id_author' className='mb-3 shadow-none' onChange={this.change}/>
+                            <Input type='text' name='genre' className='mb-3 shadow-none' onChange={this.change}/>
+                            <h6>Author</h6>
+                            <Input type='text' name='author' className='mb-3 shadow-none' onChange={this.change}/>
                             {/* <h6>Genre</h6>
                             <select className="w-50 mb-3 list-group border-0 shadow-none">
                                 <option className="list-group-item border-0 bg-light">Genre</option>

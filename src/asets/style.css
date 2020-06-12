@@ -4,9 +4,14 @@ html, body, #root {
     margin: 0;
     padding: 0;
   }
-.side-left{
-  background: url(auth.png);
-  background-size: cover;
+.logo{
+  width: 80px;
+}
+.bg{
+  background: url(bg.jpg);
+}
+.log-bar{
+  width: 500px;
 }
 .darker {
   background: rgba(0, 0, 0, 0.5);
@@ -44,4 +49,7 @@ html, body, #root {
 .cover-fix{
   width: 200px;
   height: auto;
+}
+.side-bar{
+  width: 230px;
 }

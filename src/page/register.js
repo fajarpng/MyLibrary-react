@@ -14,6 +14,11 @@ class Register extends Component{
         }
         this.register = this.register.bind(this)
     }
+    checkToken (){
+        if(localStorage.getItem('token') !== 'null'){
+            this.props.history.push(`/`)
+        }else{this.props.history.push(`/register`)}
+    }
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
@@ -24,12 +29,12 @@ class Register extends Component{
             name: this.state.user,
             email: this.state.email,
             password: this.state.password,
-            id_role: 1
+            id_role: 2
         }
         const url = `${REACT_APP_URL}users`
         await axios.post(url, data).then( (response) => {
             console.log(response.data.msg);
-            //this.props.history.push(`/home`)
+            this.props.history.push(`/login`)
           })
           .catch(function (error) {
             console.log(error.response.data.msg);
@@ -39,6 +44,9 @@ class Register extends Component{
                 text: `${error.response.data.msg}`,
               })
            })
+    }
+    componentDidMount (){
+        this.checkToken()
     }
     render(){
         return(
@@ -68,7 +76,7 @@ class Register extends Component{
                                 <Input onClick={this.register} type="submit" className='w-100 mt-2 text-white bg-secondary' value="SIGN UP"/>
                             </div>
                             <div className="d-flex justify-content-end mt-2">
-                                <Link className='text-decoration-none justify-content-end text-dark' to='/'>Have account alredy ?</Link>
+                                <Link className='text-decoration-none justify-content-end text-dark' to='/login'>Have account alredy ?</Link>
                             </div>
                         </Form>
                     </div>

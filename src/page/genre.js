@@ -40,7 +40,7 @@ class Genre extends Component{
     async deleteGenre(){
         const {REACT_APP_URL} = process.env
         await axios.delete(`${REACT_APP_URL}genres/${this.state.id}`)
-        this.getAutor()
+        this.getGenre()
     }
     async editGenre(){
         const {REACT_APP_URL} = process.env

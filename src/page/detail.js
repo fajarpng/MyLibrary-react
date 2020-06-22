@@ -4,6 +4,10 @@ import {Row, Col, Input, Navbar, Button,
 import axios from 'axios'
 import Swal from 'sweetalert2'
 import centang from '../asets/centang.png'
+import Select from 'react-select'
+
+import getGenre from '../asets/util/getGenre'
+import getAuthor from '../asets/util/getAuthor'
 
 class Detail extends Component{
     constructor(props){
@@ -19,33 +23,42 @@ class Detail extends Component{
             author: props.location.state.author,
             cover: props.location.state.cover,
             genre: props.location.state.genre,
-            data: [],
+            authors: [],
             genres: []
         }
+        this.getGenre = new getGenre() 
+        this.getAuthor = new getAuthor() 
+        this.borrow = this.borrow.bind(this)
         this.updateBook = this.updateBook.bind(this)
         this.deleteBook = this.deleteBook.bind(this)
     }
+    
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
+
     home = (e) =>{
         e.preventDefault()
         
-        this.props.history.push('/home')
+        this.props.history.push('/')
     }
+
     async updateBook () {
         const {REACT_APP_URL} = process.env
         const data = {
             title: this.state.title,
             description: this.state.desc,
             genre: this.state.genre,
-            author: this.state.author,
-            id_status: 1
+            author: this.state.author
         }
         const url = `${REACT_APP_URL}books/${this.state.id}`
         await axios.patch(url, data).then( (response) => {
             console.log(response);
-            this.setState({showSuccess: !this.state.showSuccess})
+            Swal.fire({
+                icon: 'success',
+                title: 'Success...',
+                text: `${response.data.msg}`,
+              })
             this.setState({showEdit: !this.state.showEdit})
           })
           .catch(function (error) {
@@ -57,30 +70,52 @@ class Detail extends Component{
               })
            })
     }
+
     async deleteBook(){
         const {REACT_APP_URL} = process.env
         await axios.delete(`${REACT_APP_URL}books/${this.state.id}`)
         this.setState({showSuccess: !this.state.showSuccess})
     }
-    async getAutor () {
+
+    async borrow(){
         const {REACT_APP_URL} = process.env
-        const author = await axios.get(`${REACT_APP_URL}authors`)
-        const {data} = author.data
-        this.setState({data})
-        console.log(this.state.data)
+        const data = {
+            id_book: this.state.id,
+            id_user: 22
+        }
+        const url = `${REACT_APP_URL}trans`
+        await axios.post( url, data ).then( ( response ) => {
+            console.log( response );
+            this.setState({status: 'Not Available'})
+            Swal.fire({
+                icon: 'success',
+                title: 'Success...',
+                text: `${response.data.msg}`,
+              })
+          })
+          .catch(function (error) {
+            console.log(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `${error.response.data.msg}`,
+              })
+           })
     }
-    async getGenre () {
-        const {REACT_APP_URL} = process.env
-        const Genre = await axios.get(`${REACT_APP_URL}genres`)
-        const {data} = Genre.data
-        this.setState({genres: {data}})
-        console.log(this.state.genres.data)
-    }
+
     async componentDidMount () {
-        await this.getGenre()
-        await this.getAutor()
+        const genre = await this.getGenre.getGenre()
+        const author = await this.getAuthor.getAuthor()
+        this.setState({
+            genres: genre,
+            authors: author
+        })
     }
     render(){
+        var isAdmin
+        if(localStorage.getItem('role') === '1'){
+            isAdmin = true
+        }else{isAdmin = false}
         return(
             <>
                 <Row className="h-50 w100 no-gutters">
@@ -89,8 +124,12 @@ class Detail extends Component{
                             <Navbar class='d-flex justify-content-between w-100 p-3'>
                                 <Button className="p-2 btn-warning text-white" onClick={()=> this.props.history.goBack()}>Back</Button>
                                 <div className='text-white d-flex'>
-                                    <Button className="p-2 btn-success pl-3 pr-3 mr-2" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Edit</Button>
-                                    <Button className="p-2 btn-danger ml-2" onClick={() => this.setState({showDelete: !this.state.showDelete})}>Delete</Button>
+                                    {isAdmin &&
+                                        (<div>
+                                            <Button className="p-2 btn-success pl-3 pr-3 mr-2" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Edit</Button>
+                                            <Button className="p-2 btn-danger ml-2" onClick={() => this.setState({showDelete: !this.state.showDelete})}>Delete</Button>
+                                        </div>)
+                                    }
                                 </div>
                             </Navbar>
                             <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix' src={this.state.cover} alt="cover" />
@@ -99,15 +138,19 @@ class Detail extends Component{
                 </Row>
                 <Row className="w100 no-gutters mb-5 ml-5 mt-3">
                     <Col xs='9'>
-                        <div className="badge badge-pill badge-warning text-white">{this.state.genre} </div>
-                        <div className="h1"> {this.state.title} </div>
+                        <div className="badge badge-pill badge-warning text-white">{this.state.genre}</div>
+                        <div className="h1 d-flex justify-content-between">
+                            {this.state.title} 
+                            <div>
+                                <Button className="btn-warning text-white" onClick={this.borrow}>
+                                    Borrow
+                                </Button>
+                            </div>
+                        </div>
                         <div className="text-success h5"> {this.state.status} </div>
                         <div className="h6"> {this.state.author} </div>
                         <div className=''> {this.state.desc} </div>
                     </Col>
-                    {/* <Col className='d-flex flex-row justify-content-center ' sx='3'>
-                        <Button className="btn btn-warning btn-lg text-white align-self-end b-shadow">Borrow</Button>
-                    </Col> */}
                 </Row>
 
                 {/* Edit Books */}
@@ -117,20 +160,21 @@ class Detail extends Component{
                         <h6>Title</h6>
                         <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change} value={this.state.title}/>
                         <h6>Description</h6>
-                        <Input type='text' name='desc' className='mb-3 shadow-none' onChange={this.change} value={this.state.desc}/>
+                        <Input type='textarea' name='desc' className='mb-3 shadow-none' onChange={this.change} value={this.state.desc}/>
                         <h6>Genre</h6>
-                        <Input type='text' name='genre' className='mb-3 shadow-none' onChange={this.change} value={this.state.genre}/>
-                        {/* <select name='genre' className="w-50 mb-2 list-group border-0 shadow-none" onChange={this.change} value={this.state.genre}>
-                            {this.state.genres.data.map((o, index) => (
-                                <option className="list-group-item bg-light">{o.genre}</option>
-                            ))}
-                        </select> */}
+                            <Select 
+                                value={{label:  this.state.genre}}
+                                className = "mb-2" 
+                                onChange = {(e) => this.setState({genre: e.value})}
+                                options = {this.state.genres.map((val) => ({value:val.genre, label: val.genre}))}
+                            />
                         <h6>Author</h6>
-                        <select name='author' className="w-50 mb-2 list-group border-0 shadow-none" onChange={this.change} value={this.state.author}>
-                            {this.state.data.map((author, index) => (
-                                <option className="list-group-item bg-light">{author.author}</option>
-                            ))}
-                        </select> 
+                            <Select  
+                                className = "mb-2" 
+                                value={{label:  this.state.author}}
+                                onChange = {(e) => this.setState({author: e.value})}
+                                options = {this.state.authors.map((val) => ({value:val.author, label: val.author}))}
+                            />
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={this.updateBook}>Edit Book</Button>

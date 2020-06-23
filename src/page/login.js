@@ -1,16 +1,15 @@
 import React, {Component} from 'react'
 import {Link} from 'react-router-dom'
 import {Row, Col, Form, FormGroup, Label, Input} from 'reactstrap'
-import axios from 'axios'
-import Swal from 'sweetalert2'
 import { connect } from 'react-redux'
 
-import { name } from '../redux/actions/counter'
+import { login } from '../redux/actions/auth'
 
 class Login extends Component{
     constructor(props){
         super(props)
         this.state = {
+            isError: false,
             email: '',
             password:''
         }
@@ -22,39 +21,25 @@ class Login extends Component{
     }
 
     checkToken (){
-        if(localStorage.getItem('token')){
-            this.props.history.push(`/`)
-        }else{this.props.history.push(`/login`)}
+        if(this.props.auth.token!==null){
+            this.props.history.push('/')
+        }
     }
 
     login = async (e) =>{
         e.preventDefault()
-        const {REACT_APP_URL} = process.env
-        const data = {
-            email: this.state.email,
-            password: this.state.password,
-        }
-        const url = `${REACT_APP_URL}users/login`
-        await axios.post(url, data).then( (response) => {
-            console.log(response.data);
-            this.props.name(response.data.name)
-            localStorage.setItem('token', response.data.token)
-            localStorage.setItem('role', response.data.role)
-            this.props.history.push(`/`)
-          })
-          .catch(function (error) {
-            console.log(error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `${error.response.data.msg}`,
-              })
-           })
+        const {email, password} = this.state
+
+        this.props.login(email, password).then( (res) => {
+            this.props.history.push('/register')
+        })
+        console.log(this.props.auth);
     }
     componentDidMount (){
         this.checkToken()
     }
     render(){
+        const {msg, isError} = this.props.auth
         return(
             <>
             <Row className="h-100 no-gutters bg bg-cover">
@@ -63,6 +48,7 @@ class Login extends Component{
                         <Form className='log-bar p-5 mr-3 mt-4'>
                             <h1>Login</h1>
                             <p>Hi, Welcome back to MyLibrary</p>
+                            {isError && <p> {msg} </p>}
                             <FormGroup>
                                 <Label className='w-100'>
                                     <Input onChange={e => this.setState({email: e.target.value})} className="email" type="email" placeholder="Email"/>
@@ -92,10 +78,9 @@ class Login extends Component{
     }
 }
 const mapStateToProps = state => ({
-    counter: state.counter
-  })
+    auth: state.auth
+})
 
-const mapDispatchToProps = { name }
+const mapDispatchToProps = { login }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login)
-// export default Login

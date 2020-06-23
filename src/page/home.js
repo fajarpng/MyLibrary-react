@@ -1,5 +1,4 @@
 import React, {Component} from 'react'
-import logo from '../asets/logo-white.png'
 import Slider from './carousel'
 import axios from 'axios'
 import {Link} from 'react-router-dom'
@@ -11,11 +10,13 @@ import { connect } from 'react-redux'
 import {Row, Col, Input, Navbar, Card, CardBody, CardImg, Button,
         Modal, ModalHeader, ModalBody, ModalFooter, Form} from 'reactstrap'
 
-        import Sidebar from './sidebar'
+import Sidebar from './sidebar'
 import getGenre from '../asets/util/getGenre'
 import getAuthor from '../asets/util/getAuthor'
 
-class Register extends Component{
+import {fetchBook} from '../redux/actions/fetchData'
+
+class Home extends Component{
     constructor(props){
         super(props)
         this.state = {
@@ -57,41 +58,33 @@ class Register extends Component{
         })
     }
     async getBooks(params){
-        const {REACT_APP_URL} = process.env
         const param = `${qs.stringify(params)}`
-        const url = `${REACT_APP_URL}books?${param}`
-        const books = await axios.get(url).then( (response) => {
-            console.log(response);
-            const {data} = books.data
-            this.setState({data})
-            const pageInfo = {
-                page: books.data.pageInfo.page,
-                perPage: books.data.pageInfo.perPage,
-                total: books.data.pageInfo.totalData,
-                totalPage: books.data.pageInfo.totalPage,
-            }
+
+        this.props.fetchBook(param).then( (response) => {
+
+            const pageInfo = this.props.fetchData.pageInfo
+        
             this.setState({pageInfo})
             if(params){
                 this.props.history.push(`?${param}`)
             }
 
-            if(books.data.pageInfo.page > 1){
+            if(pageInfo.page > 1){
                 this.setState({showPrev: true})
             } else {
                 this.setState({showPrev: false})
             }
 
-            if(books.data.pageInfo.page < books.data.pageInfo.totalPage){
+            if(pageInfo.page < pageInfo.totalPage){
                 this.setState({showNext: true})
             } else {
                 this.setState({showNext: false})
                 }
-            this.setState({isLoading : false})
           })
         }
         
-    async addBook (event) {
-        event.preventDefault()
+    async addBook (e) {
+        e.preventDefault()
         const {REACT_APP_URL} = process.env
         const data = new FormData()
         data.append('image', this.state.cover)
@@ -134,7 +127,8 @@ class Register extends Component{
         await this.getBooks(param)
     }
     render(){
-        var {isLoading} = this.state
+        var {isLoading, books, pageInfo} = this.props.fetchData
+        console.log(pageInfo)
         var isLogin
         if(localStorage.getItem('token') !== 'null'){
             isLogin = true
@@ -187,14 +181,14 @@ class Register extends Component{
                         </div>
                         ):(
                             <Row xs='1' md='3' lg='4' className='w-100 mb-4 card-deck'>
-                            {this.state.data.map((books, index) => ( 
+                            {books.map((books, index) => ( 
                                 <Col>
                                     <Link className='text-decoration-none'to={{
                                         pathname: `/detail/${books.id}`,
                                         state: {
                                             id: `${books.id}`,
                                             title: `${books.title}`,
-                                            desc: `${books.description}`,
+                                            desc: `${books.descriptsion}`,
                                             status: `${books.status}`,
                                             author: `${books.author}`,
                                             cover: `${books.image}`,
@@ -287,8 +281,8 @@ class Register extends Component{
     }
 }
 const mapStateToProps = state => ({
-    counter: state.counter
-  })
-
-export default connect(mapStateToProps)(Register)
+    fetchData: state.fetchData
+})
+const mapDispatchToProps = { fetchBook }
+export default connect(mapStateToProps, mapDispatchToProps)(Home)
 // export default Register

@@ -67,7 +67,7 @@ class Trans extends Component{
                             </tr>
                             </thead>
                             <tbody>
-                            {this.state.data.map((val, index) => (
+                            {this.state.data.map((val, i) => (
                             <tr>
                                 <th scope="row"> {val.id}</th>
                                 <td>{val.title}</td>

@@ -11,6 +11,7 @@ import { connect } from 'react-redux'
 import {Row, Col, Input, Navbar, Card, CardBody, CardImg, Button,
         Modal, ModalHeader, ModalBody, ModalFooter, Form} from 'reactstrap'
 
+        import Sidebar from './sidebar'
 import getGenre from '../asets/util/getGenre'
 import getAuthor from '../asets/util/getAuthor'
 
@@ -19,9 +20,10 @@ class Register extends Component{
         super(props)
         this.state = {
             showModal: false,
-            showPrev: true,
+            showPrev: false,
             showNext: false,
             showSuccess: false,
+            isLoading: true,
             data: [],
             pageInfo: [],
             authors: [],
@@ -36,17 +38,11 @@ class Register extends Component{
         
         this.getGenre = new getGenre() 
         this.getAuthor = new getAuthor()
-        this.logout = this.logout.bind(this)
         this.toggleModal = this.toggleModal.bind(this)
         this.addBook = this.addBook.bind(this)
         this.toggleSuccess = this.toggleSuccess.bind(this)
     }
-    logout (){
-        localStorage.setItem('token', null)
-        localStorage.setItem('role', null)
-        localStorage.setItem('name', null)
-        this.props.history.push('/')
-    }
+    
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
@@ -63,32 +59,37 @@ class Register extends Component{
     async getBooks(params){
         const {REACT_APP_URL} = process.env
         const param = `${qs.stringify(params)}`
-        const books = await axios.get(`${REACT_APP_URL}books?${param}`)
-        const {data} = books.data
-        this.setState({data})
-        const pageInfo = {
-            page: books.data.pageInfo.page,
-            perPage: books.data.pageInfo.perPage,
-            total: books.data.pageInfo.totalData,
-            totalPage: books.data.pageInfo.totalPage,
-        }
-        this.setState({pageInfo})
-        if(params){
-            this.props.history.push(`?${param}`)
-        }
-
-        if(books.data.pageInfo.page > 1){
-            this.setState({showPrev: true})
-        } else {
-            this.setState({showPrev: false})
-        }
-
-        if(books.data.pageInfo.page < books.data.pageInfo.totalPage){
-            this.setState({showNext: true})
-        } else {
-            this.setState({showNext: false})
+        const url = `${REACT_APP_URL}books?${param}`
+        const books = await axios.get(url).then( (response) => {
+            console.log(response);
+            const {data} = books.data
+            this.setState({data})
+            const pageInfo = {
+                page: books.data.pageInfo.page,
+                perPage: books.data.pageInfo.perPage,
+                total: books.data.pageInfo.totalData,
+                totalPage: books.data.pageInfo.totalPage,
             }
-    }
+            this.setState({pageInfo})
+            if(params){
+                this.props.history.push(`?${param}`)
+            }
+
+            if(books.data.pageInfo.page > 1){
+                this.setState({showPrev: true})
+            } else {
+                this.setState({showPrev: false})
+            }
+
+            if(books.data.pageInfo.page < books.data.pageInfo.totalPage){
+                this.setState({showNext: true})
+            } else {
+                this.setState({showNext: false})
+                }
+            this.setState({isLoading : false})
+          })
+        }
+        
     async addBook (event) {
         event.preventDefault()
         const {REACT_APP_URL} = process.env
@@ -133,6 +134,7 @@ class Register extends Component{
         await this.getBooks(param)
     }
     render(){
+        var {isLoading} = this.state
         var isLogin
         if(localStorage.getItem('token') !== 'null'){
             isLogin = true
@@ -141,6 +143,7 @@ class Register extends Component{
         if(localStorage.getItem('role') === '1'){
             isAdmin = true
         }else{isAdmin = false}
+        
         const params = qs.parse(this.props.location.search.slice(1))
         params.page = params.page || 1
         params.search = ''
@@ -150,49 +153,18 @@ class Register extends Component{
                     <div className='h-100 w-100 d-flex flex-column' xs='12'>
                         <Row xs='1' className='w-100'>
                             <Col className='w-100 h-10' xs='12'>
-                                <Navbar className='w-100 b-shadow d-flex flex-row ps-fixed z-pd bg-dark'>
-                                    <div className="ml-2 d-flex flex-row align-items-center">
-                                        <img className="icon logo" src={logo} alt="logo"/>
-                                        {/* {isLogin && 
-                                            (<Link to='/trans' className="text-decoration-none nav-link text-light">History</Link>)
-                                        } */}
-                                        {isAdmin &&
-                                            (<div className="ml-4 d-flex flex-row">
-                                                <Link to='/' className="text-decoration-none nav-link text-light">Home</Link>
-                                                <Link to='/trans' className="text-decoration-none nav-link text-light">History</Link>
-                                                <Link to='/genre' className="text-decoration-none nav-link text-light">Genre</Link>
-                                                <Link to='/author' className="text-decoration-none nav-link text-light">Author</Link>
-                                            </div>)
-                                        }
-                                    </div>
-                                    <div className="w-50 d-flex flex-row">
-                                        <Input onChange={e => this.setState({search: e.target.value})} className="p-2 rounded-pill shadow-none" placeholder="Search book..."/>
-                                        <Button onClick={()=>this.getBooks({...params, search: this.state.search})} className='rounded-pill ml-2'>Search</Button>
-                                    </div>
-                                    {!isLogin ?
-                                        (<div className="pl-2 d-flex flex-row">
-                                            <Link to='/register' className="pl-3 text-decoration-none nav-link">
-                                                <Button className='btn-dark btn-outline-light'>Sign Up</Button>
-                                            </Link>
-                                            <Link to='/login' className="text-decoration-none nav-link">
-                                                <Button className='btn-light'>Log In</Button>
-                                            </Link>
-                                        </div>) : 
-                                        (<div className="d-flex flex-row align-items-center justify-content-between">
-                                            <div className="mr-4 align-self-center text-light">
-                                                Hi, {this.props.counter.name}
-                                            </div>
-                                            <Button onClick={this.logout} className='btn-dark btn-outline-light'>Logout</Button>
-                                        </div>)
-                                    }
-                                </Navbar>
+                                <Sidebar/>
                             </Col>
                         </Row>
                         <Row className=''>
-                            <Col xs='12' className='mt-5 p-0 w-100'>
-                                <Slider className='w-100 p-0'/>
+                            <Col md='12' sm='0' className='mt-5 p-0 w-100 d-none d-md-block'>
+                                <Slider className='w-100 p-0 d-sm-none'/>
                             </Col>
                         </Row>
+                        <div className="w-100 d-flex flex-row justify-content-center align-items-center mt-5">
+                            <Input onChange={e => this.setState({search: e.target.value})} className="w-50 p-2 rounded-pill shadow-none" placeholder="Search book..."/>
+                            <Button onClick={()=>this.getBooks({...params, search: this.state.search})} className='rounded-pill ml-2 btn-dark'>Search</Button>
+                        </div>
                         <div className='w-auto ml-4 d-flex flex-row justify-content-between w-100'>
                             {isAdmin && ( <Button className='btn-dark mt-3 mr-3' onClick={this.toggleModal}>Add</Button> ) }
                             <div className="mt-3 d-flex flex-row">
@@ -201,35 +173,50 @@ class Register extends Component{
                             </div>
                             
                         </div>
-                        <Row xs='4' className='w-100 mb-4 card-deck'>
+                        {isLoading ? (
+                            <div className='d-flex flex-row align-self-center mt-2'>
+                            <div class="spinner-grow mr-2" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow mr-2" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow mr-2" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+                        ):(
+                            <Row xs='1' md='3' lg='4' className='w-100 mb-4 card-deck'>
                             {this.state.data.map((books, index) => ( 
-                                <Link className='text-decoration-none'to={{
-                                    pathname: `/detail/${books.id}`,
-                                    state: {
-                                        id: `${books.id}`,
-                                        title: `${books.title}`,
-                                        desc: `${books.description}`,
-                                        status: `${books.status}`,
-                                        author: `${books.author}`,
-                                        cover: `${books.image}`,
-                                        genre: `${books.genre}`
-                                    }
-                                }}>
-                                    <Col>
-                                        <Card role='button' className="mt-5 b-shadow">
-                                        <CardImg className='fit-box' src={books.image} alt="Card image cap" />
-                                        <CardBody>
-                                            <div className='text-dark h5'>{books.title}</div>
-                                            <div className='text-muted'>{books.genre}</div>
-                                        </CardBody>
-                                        </Card>
-                                    </Col>
-                                </Link>
+                                <Col>
+                                    <Link className='text-decoration-none'to={{
+                                        pathname: `/detail/${books.id}`,
+                                        state: {
+                                            id: `${books.id}`,
+                                            title: `${books.title}`,
+                                            desc: `${books.description}`,
+                                            status: `${books.status}`,
+                                            author: `${books.author}`,
+                                            cover: `${books.image}`,
+                                            genre: `${books.genre}`
+                                        }
+                                    }}>
+                                        
+                                            <Card role='button' className="mt-5 b-shadow">
+                                            <CardImg className='fit-box' src={books.image} alt="Card image cap" />
+                                            <CardBody>
+                                                <div className='text-dark h5'>{books.title}</div>
+                                                <div className='text-muted'>{books.genre}</div>
+                                            </CardBody>
+                                            </Card>
+                                    </Link>
+                                </Col>
                             ))}
                             {/* {this.state.isAvail ||
                                 (<Col className='h5 m-5'>Sorry, No result</Col>)
                             } */}
                         </Row>
+                        )}
                         <Row className='mt-5 mb-5 d-flex flex-column'>
                         <Col>
                         <div className='d-flex flex-row justify-content-between'>

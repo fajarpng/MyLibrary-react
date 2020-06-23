@@ -132,22 +132,25 @@ class Detail extends Component{
                                     }
                                 </div>
                             </Navbar>
-                            <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix' src={this.state.cover} alt="cover" />
+                            <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix d-none d-lg-block' src={this.state.cover} alt="cover" />
                         </div>
                     </Col>
                 </Row>
                 <Row className="w100 no-gutters mb-5 ml-5 mt-3">
                     <Col xs='9'>
                         <div className="badge badge-pill badge-warning text-white">{this.state.genre}</div>
-                        <div className="h1 d-flex justify-content-between">
+                        <div className="h1 ">
                             {this.state.title} 
+                            
+                        </div>
+                        <div className="text-success h5 d-flex justify-content-between"> 
+                            {this.state.status} 
                             <div>
                                 <Button className="btn-warning text-white" onClick={this.borrow}>
                                     Borrow
                                 </Button>
                             </div>
                         </div>
-                        <div className="text-success h5"> {this.state.status} </div>
                         <div className="h6"> {this.state.author} </div>
                         <div className=''> {this.state.desc} </div>
                     </Col>

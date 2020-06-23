@@ -22,7 +22,7 @@ class Login extends Component{
     }
 
     checkToken (){
-        if(localStorage.getItem('token') !== 'null'){
+        if(localStorage.getItem('token')){
             this.props.history.push(`/`)
         }else{this.props.history.push(`/login`)}
     }

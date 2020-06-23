@@ -15,7 +15,7 @@ class Register extends Component{
         this.register = this.register.bind(this)
     }
     checkToken (){
-        if(localStorage.getItem('token') !== 'null'){
+        if(localStorage.getItem('token')){
             this.props.history.push(`/`)
         }else{this.props.history.push(`/register`)}
     }

@@ -2,8 +2,9 @@ import React, {Component} from 'react'
 import {Link} from 'react-router-dom'
 import {Row, Col, Form, FormGroup, Label, Input} from 'reactstrap'
 import { connect } from 'react-redux'
+import Swal from 'sweetalert2'
 
-import { login } from '../redux/actions/auth'
+import { login, clear } from '../redux/actions/auth'
 
 class Login extends Component{
     constructor(props){
@@ -22,21 +23,40 @@ class Login extends Component{
 
     checkToken (){
         if(this.props.auth.token!==null){
-            this.props.history.push('/')
+            this.props.history.goBack()
         }
     }
 
-    login = async (e) =>{
+    login = (e) =>{
         e.preventDefault()
         const {email, password} = this.state
 
-        this.props.login(email, password).then( (res) => {
-            this.props.history.push('/register')
-        })
-        console.log(this.props.auth);
+        this.props.login(email, password)
+    }
+    componentDidUpdate(){
+        const {msg, isError} = this.props.auth
+        if(msg !== ''){
+            if(isError){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: msg,
+                  })
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: msg,
+                })
+                this.props.history.push('/')
+            }
+        this.props.clear()
+        }
     }
     componentDidMount (){
-        this.checkToken()
+        if(this.props.auth.token!==null){
+            this.props.history.goBack()
+        }
     }
     render(){
         const {msg, isError} = this.props.auth
@@ -48,7 +68,7 @@ class Login extends Component{
                         <Form className='log-bar p-5 mr-3 mt-4'>
                             <h1>Login</h1>
                             <p>Hi, Welcome back to MyLibrary</p>
-                            {isError && <p> {msg} </p>}
+                            {isError && <p className='text-danger'> {msg} </p>}
                             <FormGroup>
                                 <Label className='w-100'>
                                     <Input onChange={e => this.setState({email: e.target.value})} className="email" type="email" placeholder="Email"/>
@@ -81,6 +101,5 @@ const mapStateToProps = state => ({
     auth: state.auth
 })
 
-const mapDispatchToProps = { login }
-
+const mapDispatchToProps = { login, clear }
 export default connect(mapStateToProps, mapDispatchToProps)(Login)

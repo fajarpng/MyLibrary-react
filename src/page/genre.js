@@ -2,100 +2,82 @@ import React, {Component} from 'react'
 import Sidebar from './sidebar'
 import {Row, Col, Button, Table,
     Modal, ModalHeader, ModalBody, ModalFooter, Form, Input} from 'reactstrap'
-import axios from 'axios'
-import centang from '../asets/centang.png'
 import Swal from 'sweetalert2'
+import { connect } from 'react-redux'
+
+import {fetchGenre} from '../redux/actions/fetchData'
+import {deleteGenre, addGenre, updateGenre, clear} from '../redux/actions/actionData'
 
 class Genre extends Component{
     constructor(props){
         super(props)
         this.state = {
-            data: [],
             showModal: false,
-            showSuccess: false,
             showEdit: false,
             showDelete: false,
             id: 0,
             name: '',
         }
-        this.toggleModal = this.toggleModal.bind(this)
-        this.addGenre = this.addGenre.bind(this)
-        this.editGenre = this.editGenre.bind(this)
-        this.deleteGenre = this.deleteGenre.bind(this)
-        this.toggleSuccess = this.toggleSuccess.bind(this)
     }
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
-    toggleModal(){
+    toggleModal = () => {
         this.setState({
             showModal: !this.state.showModal
         })
     }
-    toggleSuccess(){
-        this.setState({
-            showSuccess: !this.state.showSuccess
-        })
+    deleteGenre = () => {
+        const {id} = this.state
+        const {token} = this.props.auth
+        
+        this.props.deleteGenre(id,token)
     }
-    async deleteGenre(){
-        const {REACT_APP_URL} = process.env
-        await axios.delete(`${REACT_APP_URL}genres/${this.state.id}`)
-        this.getGenre()
+    editGenre = () => {
+        const {id, name} = this.state
+        const data = {
+            genre: name,
+        }
+        
+        this.props.updateGenre(data,id)
     }
-    async editGenre(){
-        const {REACT_APP_URL} = process.env
-        const url = `${REACT_APP_URL}genres/${this.state.id}`
-        console.log(this.state.id)
+    addGenre = () => {
+        const {token} = this.props.auth
         const data = {
             genre: this.state.name,
         }
-        await axios.patch(url, data).then( (response) => {
-            console.log(response);
-            this.setState({showEdit: false})
-            this.getGenre()
-            this.setState({showSuccess: true})
-          })
-          .catch(function (error) {
-            console.log(error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `${error.response.data.msg}`,
-              })
-           })
+        this.props.addGenre(data,token)
     }
-    async addGenre(){
-        const {REACT_APP_URL} = process.env
-        const url = `${REACT_APP_URL}genres`
-        const data = {
-            genre: this.state.name,
+
+    componentDidUpdate(){
+        const {isError, msg} = this.props.actionData
+        if(msg !== ''){
+            if(isError){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: msg,
+                  })
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: msg,
+                })
+                this.setState({showEdit: false})
+                this.setState({showDelete: false})
+                this.setState({showModal: false})
+                this.props.fetchGenre()
+            }
+        this.props.clear()
         }
-        await axios.post(url, data).then( (response) => {
-            console.log(response);
-            this.setState({showModal: false})
-            this.getGenre()
-            this.setState({showSuccess: true})
-          })
-          .catch(function (error) {
-            console.log(error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `${error.response.data.msg}`,
-              })
-           })
     }
-    async getGenre () {
-        const {REACT_APP_URL} = process.env
-        const Genre = await axios.get(`${REACT_APP_URL}genres`)
-        const {data} = Genre.data
-        this.setState({data})
-        console.log({data})
-    }
-    async componentDidMount () {
-        await this.getGenre()
+
+    componentDidMount () {
+        this.props.fetchGenre()
     }
     render(){
+        const { genres, isLoading } = this.props.fetchData
         return(
             <>
                 <Row className='h-100 w-100'>
@@ -105,6 +87,19 @@ class Genre extends Component{
                             <h2 className='mt-5'>List Genres</h2>
                             <Button className='btn-warning mt-2 mb-2' onClick={this.toggleModal}>Add</Button>
                        </div>
+                       {isLoading ? (
+                            <div className='d-flex flex-row justify-content-center align-self-center mt-5 w-100 h-100'>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                            </div>
+                        ):(
                        <Table bordered className='w-100 mt-2 ml-3'>
                             <thead>
                             <tr>
@@ -114,7 +109,7 @@ class Genre extends Component{
                             </tr>
                             </thead>
                             <tbody>
-                            {this.state.data.map((Genre, index) => (
+                            {genres.map((Genre, index) => (
                             <tr>
                                 <th scope="row">{Genre.id}</th>
                                 <td>{Genre.genre}</td>
@@ -127,6 +122,7 @@ class Genre extends Component{
                             ))}
                             </tbody>
                         </Table>
+                        )}
                     </Col>
                 </Row>
 
@@ -154,7 +150,7 @@ class Genre extends Component{
                     </ModalBody>
                     <ModalFooter>
                         <Button color="primary" onClick={this.editGenre}>Save</Button>
-                        <Button color="secondary" onClick={() => this.setState({showEdit: !this.state.showEdit})}>Cancel</Button>
+                        <Button color="secondary" onClick={() => this.setState({showEdit: false})}>Cancel</Button>
                     </ModalFooter>
                 </Modal>
 
@@ -166,18 +162,7 @@ class Genre extends Component{
                     </ModalBody>
                     <ModalFooter>
                         <Button className='btn-danger' onClick={this.deleteGenre}>Delete</Button>
-                        <Button className='' onClick={() => this.setState({showDelete: !this.state.showDelete})}>Cancel</Button>
-                    </ModalFooter>
-                </Modal>
-
-                {/*Succes Modal */}
-                <Modal isOpen={this.state.showSuccess}>
-                    <ModalHeader className='h1'>Success</ModalHeader>
-                    <ModalBody className='d-flex justify-content-center align-items-center'>
-                        <img className='centang' src={centang} alt='SuccessImage'/>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button className='btn-success' onClick={this.toggleSuccess}>OK</Button>
+                        <Button className='' onClick={() => this.setState({showDelete: false})}>Cancel</Button>
                     </ModalFooter>
                 </Modal>
             </>
@@ -185,4 +170,11 @@ class Genre extends Component{
     }
 }
 
-export default Genre
+const mapStateToProps = state => ({
+    fetchData: state.fetchData,
+    auth: state.auth,
+    actionData: state.actionData
+})
+
+const mapDispatchToProps = { fetchGenre, deleteGenre, addGenre, updateGenre, clear}
+export default connect(mapStateToProps, mapDispatchToProps)(Genre)

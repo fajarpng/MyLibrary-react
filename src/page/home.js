@@ -1,20 +1,19 @@
 import React, {Component} from 'react'
 import Slider from './carousel'
-import axios from 'axios'
 import {Link} from 'react-router-dom'
 import Swal from 'sweetalert2'
 import qs from 'querystring'
-import centang from '../asets/centang.png'
+import jwt from 'jsonwebtoken'
 import Select from 'react-select'
 import { connect } from 'react-redux'
-import {Row, Col, Input, Navbar, Card, CardBody, CardImg, Button,
+import {Row, Col, Input, Card, CardBody, CardImg, Button,
         Modal, ModalHeader, ModalBody, ModalFooter, Form} from 'reactstrap'
+import { Dropdown } from 'react-bootstrap'
 
 import Sidebar from './sidebar'
-import getGenre from '../asets/util/getGenre'
-import getAuthor from '../asets/util/getAuthor'
 
-import {fetchBook} from '../redux/actions/fetchData'
+import {fetchBook, fetchGenre, fetchAuthor} from '../redux/actions/fetchData'
+import {addBook, clear} from '../redux/actions/actionData'
 
 class Home extends Component{
     constructor(props){
@@ -23,12 +22,6 @@ class Home extends Component{
             showModal: false,
             showPrev: false,
             showNext: false,
-            showSuccess: false,
-            isLoading: true,
-            data: [],
-            pageInfo: [],
-            authors: [],
-            genres: [],
             search:'',
             title: '',
             desc: '',
@@ -36,12 +29,7 @@ class Home extends Component{
             author: '',
             cover: ''
         }
-        
-        this.getGenre = new getGenre() 
-        this.getAuthor = new getAuthor()
         this.toggleModal = this.toggleModal.bind(this)
-        this.addBook = this.addBook.bind(this)
-        this.toggleSuccess = this.toggleSuccess.bind(this)
     }
     
     change = (e) =>{
@@ -52,19 +40,13 @@ class Home extends Component{
             showModal: !this.state.showModal
         })
     }
-    toggleSuccess(){
-        this.setState({
-            showSuccess: !this.state.showSuccess
-        })
-    }
-    async getBooks(params){
+    getBooks(params){
         const param = `${qs.stringify(params)}`
 
         this.props.fetchBook(param).then( (response) => {
 
             const pageInfo = this.props.fetchData.pageInfo
         
-            this.setState({pageInfo})
             if(params){
                 this.props.history.push(`?${param}`)
             }
@@ -83,9 +65,10 @@ class Home extends Component{
           })
         }
         
-    async addBook (e) {
+    addBook = (e) => {
         e.preventDefault()
-        const {REACT_APP_URL} = process.env
+
+        const {token} = this.props.auth
         const data = new FormData()
         data.append('image', this.state.cover)
         data.set('title', this.state.title)
@@ -93,22 +76,8 @@ class Home extends Component{
         data.set('genre', this.state.genre)
         data.set('author', this.state.author)
         data.set('id_status', 1)
-
-        const url = `${REACT_APP_URL}books`
-        await axios.post(url, data).then( (response) => {
-            console.log(response);
-            this.setState({showModal: false})
-            this.getBooks()
-            this.setState({showSuccess: true})
-          })
-          .catch(function (error) {
-            console.log(error.response.data);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `${error.response.data.msg}`,
-              })
-           })
+        
+        this.props.addBook(data, token)
     }
     changeGenre(e){
         this.setState({genre: e.value})
@@ -116,25 +85,42 @@ class Home extends Component{
     changeAuthor(e){
         this.setState({author: e.value})
     }
-    async componentDidMount(){
-        const genre = await this.getGenre.getGenre()
-        const author = await this.getAuthor.getAuthor()
-        this.setState({
-            genres: genre,
-            authors: author
-        })
+
+    componentDidUpdate(){
+        const {isError, msg} = this.props.actionData
+        if(msg !== ''){
+            if(isError){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: msg,
+                  })
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: msg,
+                })
+                this.setState({showModal: false})
+                this.props.fetchBook()
+            }
+        this.props.clear()
+        }
+    }
+
+    componentDidMount(){
         const param = qs.parse(this.props.location.search.slice(1))
-        await this.getBooks(param)
+        this.getBooks(param)
+        this.props.fetchAuthor()
+        this.props.fetchGenre()
     }
     render(){
-        var {isLoading, books, pageInfo} = this.props.fetchData
-        console.log(pageInfo)
-        var isLogin
-        if(localStorage.getItem('token') !== 'null'){
-            isLogin = true
-        }else{isLogin = false}
+        var {isLoading, books, genres, authors, pageInfo} = this.props.fetchData
+        var {role, token} = this.props.auth
+        const decoded = jwt.decode(token)
+        console.log(decoded)
         var isAdmin
-        if(localStorage.getItem('role') === '1'){
+        if(role === 1){
             isAdmin = true
         }else{isAdmin = false}
         
@@ -155,30 +141,34 @@ class Home extends Component{
                                 <Slider className='w-100 p-0 d-sm-none'/>
                             </Col>
                         </Row>
-                        <div className="w-100 d-flex flex-row justify-content-center align-items-center mt-5">
+                        <div className="w-100 d-flex flex-row justify-content-center align-items-center mt-3">
                             <Input onChange={e => this.setState({search: e.target.value})} className="w-50 p-2 rounded-pill shadow-none" placeholder="Search book..."/>
                             <Button onClick={()=>this.getBooks({...params, search: this.state.search})} className='rounded-pill ml-2 btn-dark'>Search</Button>
                         </div>
                         <div className='w-auto ml-4 d-flex flex-row justify-content-between w-100'>
                             {isAdmin && ( <Button className='btn-dark mt-3 mr-3' onClick={this.toggleModal}>Add</Button> ) }
-                            <div className="mt-3 d-flex flex-row">
-                                <Button className='btn-dark mr-3' onClick={()=>this.getBooks({...params, sort: 0})}>A-Z</Button>
-                                <Button className='btn-dark mr-3' onClick={()=>this.getBooks({...params, sort: 1})}>Z-A</Button>
-                            </div>
-                            
+                                <Dropdown className="mt-3">
+                                  <Dropdown.Toggle className='btn-dark' id="dropdown-basic">
+                                    Sort By
+                                  </Dropdown.Toggle>
+                                    <Dropdown.Menu className='bg-dark p-0'>
+                                    <Dropdown.Item className='bg-dark text-light' onClick={()=>this.getBooks({...params, sort: 0})}>Name A-Z</Dropdown.Item>
+                                    <Dropdown.Item className='bg-dark text-light' onClick={()=>this.getBooks({...params, sort: 1})}>Name Z-A</Dropdown.Item>
+                                  </Dropdown.Menu>
+                                </Dropdown>
                         </div>
                         {isLoading ? (
-                            <div className='d-flex flex-row align-self-center mt-2'>
-                            <div class="spinner-grow mr-2" role="status">
-                                <span class="sr-only">Loading...</span>
+                            <div className='d-flex flex-row align-self-center mt-3'>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <div class="spinner-grow mr-2" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
                             </div>
-                            <div class="spinner-grow mr-2" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                            <div class="spinner-grow mr-2" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                        </div>
                         ):(
                             <Row xs='1' md='3' lg='4' className='w-100 mb-4 card-deck'>
                             {books.map((books, index) => ( 
@@ -188,8 +178,7 @@ class Home extends Component{
                                         state: {
                                             id: `${books.id}`,
                                             title: `${books.title}`,
-                                            desc: `${books.descriptsion}`,
-                                            status: `${books.status}`,
+                                            desc: `${books.description}`,
                                             author: `${books.author}`,
                                             cover: `${books.image}`,
                                             genre: `${books.genre}`
@@ -220,7 +209,7 @@ class Home extends Component{
                                 }
                             </div>
                             <div>
-                            {[...Array(this.state.pageInfo.totalPage)].map((o, i)=>{
+                            {[...Array(pageInfo.totalPage)].map((o, i)=>{
                                 return (
                                 <Button onClick={()=>this.getBooks({...params, page: params.page? i+1 : i+1})} className='mr-1 ml-1 btn-outline-dark btn-light' key={i.toString()}>{i+1}</Button>
                                 )
@@ -248,13 +237,13 @@ class Home extends Component{
                                 <Select  
                                     className = "mb-2" 
                                     onChange = {this.changeGenre.bind(this)}
-                                    options = {this.state.genres.map((val) => ({value:val.genre, label: val.genre}))}
+                                    options = {genres.map((val) => ({value:val.genre, label: val.genre}))}
                                 />
                             <h6>Author</h6>
                                 <Select  
                                     className = "mb-2" 
                                     onChange = {this.changeAuthor.bind(this)}
-                                    options = {this.state.authors.map((val) => ({value:val.author, label: val.author}))}
+                                    options = {authors.map((val) => ({value:val.author, label: val.author}))}
                                 />
                             <h6>Cover Image</h6>
                             <Input type='file' name='cover' className='mb-2 border-dark' onChange={(e) => this.setState({cover: e.target.files[0]})}/>
@@ -265,24 +254,14 @@ class Home extends Component{
                         </ModalFooter>
                     </Form>
                 </Modal>
-
-                {/*Succes Modal */}
-                <Modal isOpen={this.state.showSuccess}>
-                    <ModalHeader className='h1'>Success</ModalHeader>
-                    <ModalBody className='d-flex justify-content-center align-items-center'>
-                        <img className='centang' src={centang} alt='SuccessImage'/>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button className='btn-success' onClick={this.toggleSuccess}>OK</Button>
-                    </ModalFooter>
-                </Modal>
             </>
         )
     }
 }
 const mapStateToProps = state => ({
-    fetchData: state.fetchData
+    fetchData: state.fetchData,
+    auth: state.auth,
+    actionData: state.actionData
 })
-const mapDispatchToProps = { fetchBook }
+const mapDispatchToProps = { fetchBook, fetchGenre, fetchAuthor, addBook, clear }
 export default connect(mapStateToProps, mapDispatchToProps)(Home)
-// export default Register

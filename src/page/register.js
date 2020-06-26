@@ -1,8 +1,10 @@
 import React, {Component} from 'react'
 import {Link} from 'react-router-dom'
 import {Row, Col, Form, FormGroup, Label, Input} from 'reactstrap'
-import axios from 'axios'
 import Swal from 'sweetalert2'
+import { connect } from 'react-redux'
+
+import { register, clear } from '../redux/actions/auth'
 
 class Register extends Component{
     constructor(props){
@@ -22,31 +24,41 @@ class Register extends Component{
     change = (e) =>{
         this.setState({[e.target.name]: e.target.value})
     }
-    register = async (e) =>{
+    register = (e) =>{
         e.preventDefault()
-        const {REACT_APP_URL} = process.env
         const data = {
             name: this.state.user,
             email: this.state.email,
             password: this.state.password,
             id_role: 2
         }
-        const url = `${REACT_APP_URL}users`
-        await axios.post(url, data).then( (response) => {
-            console.log(response.data.msg);
-            this.props.history.push(`/login`)
-          })
-          .catch(function (error) {
-            console.log(error.response.data.msg);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `${error.response.data.msg}`,
-              })
-           })
+        
+        this.props.register(data)
+    }
+    componentDidUpdate(){
+        const {msg, isError} = this.props.auth
+        if(msg !== ''){
+            if(isError){
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: msg,
+                  })
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: msg,
+                })
+                this.props.history.push('/login')
+            }
+        this.props.clear()
+        }
     }
     componentDidMount (){
-        this.checkToken()
+        if(this.props.auth.token!==null){
+            this.props.history.goBack()
+        }
     }
     render(){
         return(
@@ -90,5 +102,9 @@ class Register extends Component{
         )
     }
 }
+const mapStateToProps = state => ({
+    auth: state.auth
+})
 
-export default Register
+const mapDispatchToProps = { register, clear }
+export default connect(mapStateToProps, mapDispatchToProps)(Register)

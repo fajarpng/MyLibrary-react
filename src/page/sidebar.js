@@ -2,6 +2,9 @@ import React, {Component} from 'react'
 import logo from '../asets/logo-white.png'
 import {Link} from 'react-router-dom'
 import {Navbar, Button, NavbarToggler, Nav, NavItem, Collapse} from 'reactstrap'
+import { connect } from 'react-redux'
+
+import { logout } from '../redux/actions/auth'
 
 class Sidebar extends Component{
     constructor(props) {
@@ -13,15 +16,13 @@ class Sidebar extends Component{
     toggleNavbar = () => {
         this.setState({show: !this.state.show})
     }
-    logout (){
-        localStorage.removeItem('token')
-        localStorage.removeItem('role')
-        localStorage.removeItem('name')
-        this.props.history.push('/')
+    logOut = () => {
+        this.props.logout()
     }
     render(){
+        const {name, token} = this.props.auth
         var isLogin
-        if(localStorage.getItem('token') !== 'null'){
+        if(token !== null){
             isLogin = true
         }else{isLogin = false}
         return(
@@ -56,9 +57,9 @@ class Sidebar extends Component{
                         </div>) : 
                         (<div className="d-flex flex-row align-items-center justify-content-between">
                             <div className="mr-2 align-self-center text-light">
-                                Hi, {this.props.counter.name}
+                                Hi, {name}
                             </div>
-                            <Button onClick={this.logout} className='btn-dark btn-outline-light'>Logout</Button>
+                            <Button onClick={this.logOut} className='btn-dark btn-outline-light'>Logout</Button>
                         </div>)
                     }
                 </Navbar>
@@ -66,5 +67,9 @@ class Sidebar extends Component{
         )
     }
 }
+const mapStateToProps = state => ({
+    auth: state.auth
+})
 
-export default Sidebar
+const mapDispatchToProps = { logout }
+export default connect(mapStateToProps, mapDispatchToProps)(Sidebar)

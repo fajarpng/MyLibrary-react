@@ -3,7 +3,6 @@ import Slider from './carousel'
 import {Link} from 'react-router-dom'
 import Swal from 'sweetalert2'
 import qs from 'querystring'
-import jwt from 'jsonwebtoken'
 import Select from 'react-select'
 import { connect } from 'react-redux'
 import {Row, Col, Input, Card, CardBody, CardImg, Button,
@@ -114,11 +113,11 @@ class Home extends Component{
         this.props.fetchAuthor()
         this.props.fetchGenre()
     }
+
     render(){
-        var {isLoading, books, genres, authors, pageInfo} = this.props.fetchData
-        var {role, token} = this.props.auth
-        const decoded = jwt.decode(token)
-        console.log(decoded)
+        const {isLoading, books, genres, authors, pageInfo} = this.props.fetchData
+        const {role} = this.props.auth
+
         var isAdmin
         if(role === 1){
             isAdmin = true
@@ -159,14 +158,14 @@ class Home extends Component{
                         </div>
                         {isLoading ? (
                             <div className='d-flex flex-row align-self-center mt-3'>
-                                <div class="spinner-grow mr-2" role="status">
-                                    <span class="sr-only">Loading...</span>
+                                <div className="spinner-grow mr-2" role="status">
+                                    <span className="sr-only">Loading...</span>
                                 </div>
-                                <div class="spinner-grow mr-2" role="status">
-                                    <span class="sr-only">Loading...</span>
+                                <div className="spinner-grow mr-2" role="status">
+                                    <span className="sr-only">Loading...</span>
                                 </div>
-                                <div class="spinner-grow mr-2" role="status">
-                                    <span class="sr-only">Loading...</span>
+                                <div className="spinner-grow mr-2" role="status">
+                                    <span className="sr-only">Loading...</span>
                                 </div>
                             </div>
                         ):(
@@ -176,12 +175,13 @@ class Home extends Component{
                                     <Link className='text-decoration-none'to={{
                                         pathname: `/detail/${books.id}`,
                                         state: {
-                                            id: `${books.id}`,
-                                            title: `${books.title}`,
-                                            desc: `${books.description}`,
-                                            author: `${books.author}`,
-                                            cover: `${books.image}`,
-                                            genre: `${books.genre}`
+                                            id: books.id,
+                                            title: books.title,
+                                            desc: books.description,
+                                            status: books.status,
+                                            author: books.author,
+                                            cover: books.image,
+                                            genre: books.genre
                                         }
                                     }}>
                                         

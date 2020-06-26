@@ -3,8 +3,9 @@ import {Row, Col, Input, Navbar, Button,
     Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap'
 import Swal from 'sweetalert2'
 import Select from 'react-select'
-import { connect } from 'react-redux'
+import jwt from 'jsonwebtoken'
 
+import { connect } from 'react-redux'
 
 import {fetchBook, fetchGenre, fetchAuthor} from '../redux/actions/fetchData'
 import {updateBook, deleteBook, clear, addTrans} from '../redux/actions/actionData'
@@ -18,6 +19,7 @@ class Detail extends Component{
             showDelete: false,
             title: props.location.state.title,
             desc: props.location.state.desc,
+            status: props.location.state.status,
             author: props.location.state.author,
             cover: props.location.state.cover,
             genre: props.location.state.genre,
@@ -52,12 +54,22 @@ class Detail extends Component{
 
     borrow = () => {
         const {token} = this.props.auth
-        const data = {
+        if (token !== null){
+            const decoded = jwt.decode(token)
+            const data = {
             id_book: this.state.id,
-            id_user: 22
+            id_user: decoded.id
         }
 
         this.props.addTrans(data,token)
+
+        }  else {
+            Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Access denied, you must login first !',
+                  })
+        }
     }
 
     componentDidUpdate(){
@@ -76,25 +88,28 @@ class Detail extends Component{
                     text: msg,
                 })
                 this.setState({showEdit: false})
-                this.props.fetchBook()
+                this.props.fetchAuthor()
+                this.props.fetchGenre()
+                // this.props.fetchBook()
             }
         this.props.clear()
         }
     }
 
     componentDidMount(){
-        this.props.fetchBook()
         this.props.fetchAuthor()
         this.props.fetchGenre()
+        // this.props.fetchBook()
     }
 
     render(){
-        const {isLoading, books, genres, authors} = this.props.fetchData
-        const {id} = this.state 
+        const {title, desc, genre, cover, author, status} = this.state
+        const {isLoading, genres, authors} = this.props.fetchData
+        // const {id} = this.state 
         const {role} = this.props.auth
 
-        const book = books.filter(val => { return val.id === parseInt(id)})
-
+        // const book = books.filter(val => { return val.id === parseInt(id)})
+        // console.log(parseInt(id))
         var isAdmin
         if(role === 1){
             isAdmin = true
@@ -115,10 +130,9 @@ class Detail extends Component{
                     </div>
                 </div>
             ):(
-                book.map( (val) => (
                 <>
                     <Row className="h-50 w100 no-gutters">
-                        <Col className='h-100 bg-cover' style={{backgroundImage: `url(${val.image})`}} xs='12'>
+                        <Col className='h-100 bg-cover' style={{backgroundImage: `url(${cover})`}} xs='12'>
                             <div className='h-100 darker'>
                                 <Navbar class='d-flex justify-content-between w-100 p-3'>
                                     <Button className="p-2 btn-warning text-white" onClick={()=> this.props.history.goBack()}>Back</Button>
@@ -131,30 +145,29 @@ class Detail extends Component{
                                         }
                                     </div>
                                 </Navbar>
-                                <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix d-none d-lg-block' src={val.image} alt="cover" />
+                                <img className='rounded b-shadow mt-5 mr-5 float-right cover-fix d-none d-lg-block' src={cover} alt="cover" />
                             </div>
                         </Col>
                     </Row>
                     <Row className="w100 no-gutters mb-5 ml-5 mt-3">
                         <Col xs='9'>
-                            <div className="badge badge-pill badge-warning text-white">{val.genre}</div>
+                            <div className="badge badge-pill badge-warning text-white">{genre}</div>
                             <div className="h1 ">
-                                {val.title} 
+                                {title} 
                             </div>
                             <div className="text-success h5 d-flex justify-content-between align-item-center"> 
-                                {val.status} 
+                                {status} 
                                 <div>
                                     <Button className="btn-warning text-white" onClick={this.borrow}>
                                         Borrow
                                     </Button>
                                 </div>
                             </div>
-                            <div className="h6"> {val.author} </div>
-                            <div className=''> {val.description} </div>
+                            <div className="h6"> {author} </div>
+                            <div className=''> {desc} </div>
                         </Col>
                     </Row>
                 </>
-                ))
             )}
 
                 {/* Edit Books */}
@@ -162,12 +175,12 @@ class Detail extends Component{
                     <ModalHeader className='h1'>Edit Books</ModalHeader>
                     <ModalBody>
                         <h6>Title</h6>
-                        <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change} value={this.state.title}/>
+                        <Input type='text' name='title' className='mb-2 shadow-none' onChange={this.change} value={title}/>
                         <h6>Description</h6>
-                        <Input type='textarea' name='desc' className='mb-3 shadow-none' onChange={this.change} value={this.state.desc}/>
+                        <Input type='textarea' name='desc' className='mb-3 shadow-none' onChange={this.change} value={desc}/>
                         <h6>Genre</h6>
                             <Select 
-                                value={{label:  this.state.genre}}
+                                value={{label: genre}}
                                 className = "mb-2" 
                                 onChange = {(e) => this.setState({genre: e.value})}
                                 options = {genres.map((val) => ({value:val.genre, label: val.genre}))}
@@ -175,7 +188,7 @@ class Detail extends Component{
                         <h6>Author</h6>
                             <Select  
                                 className = "mb-2" 
-                                value={{label:  this.state.author}}
+                                value={{label:  author}}
                                 onChange = {(e) => this.setState({author: e.value})}
                                 options = {authors.map((val) => ({value:val.author, label: val.author}))}
                             />

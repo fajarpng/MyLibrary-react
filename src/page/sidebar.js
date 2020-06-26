@@ -3,6 +3,7 @@ import logo from '../asets/logo-white.png'
 import {Link} from 'react-router-dom'
 import {Navbar, Button, NavbarToggler, Nav, NavItem, Collapse} from 'reactstrap'
 import { connect } from 'react-redux'
+import jwt from 'jsonwebtoken'
 
 import { logout } from '../redux/actions/auth'
 
@@ -20,7 +21,14 @@ class Sidebar extends Component{
         this.props.logout()
     }
     render(){
-        const {name, token} = this.props.auth
+        const {name, role, token} = this.props.auth
+        const decoded = jwt.decode(token)
+
+        var isAdmin
+        if(role === 1){
+            isAdmin = true
+        }else{isAdmin = false}
+
         var isLogin
         if(token !== null){
             isLogin = true
@@ -35,15 +43,26 @@ class Sidebar extends Component{
 								<NavItem>
                                     <Link to='/' className="text-decoration-none nav-link text-light">Home</Link>
 								</NavItem>
-                                <NavItem>
-                                    <Link to='/trans' className="text-decoration-none nav-link text-light">History</Link>
-								</NavItem>
-                                <NavItem>
-                                    <Link to='/genre' className="text-decoration-none nav-link text-light">Genre</Link>
-								</NavItem>
-                                <NavItem>
-                                    <Link to='/author' className="text-decoration-none nav-link text-light">Author</Link>
-								</NavItem>
+                                {isLogin && (
+                                    !isAdmin ? (
+                                        <NavItem>
+                                            <Link to={{ pathname: `/trans/${decoded.name}`}} className="text-decoration-none nav-link text-light">My Trsnaction</Link>
+                                        </NavItem>
+                                        ) : (
+                                    <>
+                                    <NavItem>
+                                        <Link to='/trans' className="text-decoration-none nav-link text-light">History</Link>
+                                    </NavItem>
+                                    <NavItem>
+                                        <Link to='/genre' className="text-decoration-none nav-link text-light">Genre</Link>
+                                    </NavItem>
+                                    <NavItem>
+                                        <Link to='/author' className="text-decoration-none nav-link text-light">Author</Link>
+                                    </NavItem>
+                                    </>
+                                    )
+                                )}
+                                
                             </Nav>
                     </Collapse>
                     {!isLogin ?

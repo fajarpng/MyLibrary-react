@@ -1,12 +1,12 @@
 import React, {Component} from 'react'
-import Sidebar from './sidebar'
+import Sidebar from '../sidebar'
 import {Row, Col, Button, Table,
     Modal, ModalHeader, ModalBody, ModalFooter} from 'reactstrap'
 import Swal from 'sweetalert2'
 
 import { connect } from 'react-redux'
-import { fetchTrans } from '../redux/actions/fetchData'
-import { deleteTrans, clear } from '../redux/actions/actionData'
+import { fetchTrans } from '../../redux/actions/fetchData'
+import { deleteTrans, clear } from '../../redux/actions/actionData'
 
 class Trans extends Component{
     constructor(props){
@@ -54,8 +54,6 @@ class Trans extends Component{
     }
     render(){
         const {trans, isLoading} = this.props.fetchData
-        const  name = this.props.match.params.name
-        const data = trans.filter(val => { return val.name === name})
         return(
             <>
                 <Row className='h-100 w-100'>
@@ -87,7 +85,7 @@ class Trans extends Component{
                             </tr>
                             </thead>
                             <tbody>
-                            {data.map((val, i) => (
+                            {trans.map((val, i) => (
                             <tr>
                                 <th scope="row"> {val.id}</th>
                                 <td>{val.title}</td>

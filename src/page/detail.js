@@ -62,6 +62,7 @@ class Detail extends Component{
         }
 
         this.props.addTrans(data,token)
+        this.setState({status: Not Available})
 
         }  else {
             Swal.fire({

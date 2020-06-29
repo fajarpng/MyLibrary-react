@@ -46,7 +46,7 @@ class Sidebar extends Component{
                                 {isLogin && (
                                     !isAdmin ? (
                                         <NavItem>
-                                            <Link to={{ pathname: `/trans/${decoded.name}`}} className="text-decoration-none nav-link text-light">My Trsnaction</Link>
+                                            <Link to={{ pathname: `/trans/${decoded.name}`}} className="text-decoration-none nav-link text-light">My Transaction</Link>
                                         </NavItem>
                                         ) : (
                                     <>

@@ -14,6 +14,8 @@ import Sidebar from './sidebar'
 import {fetchBook, fetchGenre, fetchAuthor} from '../redux/actions/fetchData'
 import {addBook, clear} from '../redux/actions/actionData'
 
+const {REACT_APP_URL} = process.env
+
 class Home extends Component{
     constructor(props){
         super(props)
@@ -115,7 +117,6 @@ class Home extends Component{
     }
 
     render(){
-        const {REACT_APP_URL} = process.env
         const {isLoading, books, genres, authors, pageInfo} = this.props.fetchData
         const {role} = this.props.auth
 
@@ -181,13 +182,13 @@ class Home extends Component{
                                             desc: books.description,
                                             status: books.status,
                                             author: books.author,
-                                            cover: `REACT_APP_URL/img/${books.image}`,
+                                            cover: `${REACT_APP_URL}img/${books.image}`,
                                             genre: books.genre
                                         }
                                     }}>
                                         
                                             <Card role='button' className="mt-5 b-shadow">
-                                            <CardImg className='fit-box' src={`REACT_APP_URL/img/${books.image}`} alt="Card image cap" />
+                                            <CardImg className='fit-box' src={`${REACT_APP_URL}img/${books.image}`} alt="Card image cap" />
                                             <CardBody>
                                                 <div className='text-dark h5'>{books.title}</div>
                                                 <div className='text-muted'>{books.genre}</div>

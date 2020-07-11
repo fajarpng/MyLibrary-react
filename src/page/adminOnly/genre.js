@@ -34,12 +34,13 @@ class Genre extends Component{
         this.props.deleteGenre(id,token)
     }
     editGenre = () => {
+        const {token} = this.props.auth
         const {id, name} = this.state
         const data = {
             genre: name,
         }
         
-        this.props.updateGenre(data,id)
+        this.props.updateGenre(data,id,token)
     }
     addGenre = () => {
         const {token} = this.props.auth

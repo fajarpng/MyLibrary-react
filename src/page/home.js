@@ -13,7 +13,6 @@ import Sidebar from './sidebar'
 
 import {fetchBook, fetchGenre, fetchAuthor} from '../redux/actions/fetchData'
 import {addBook, clear} from '../redux/actions/actionData'
-const {REACT_APP_URL} = process.env
 
 class Home extends Component{
     constructor(props){
@@ -116,6 +115,7 @@ class Home extends Component{
     }
 
     render(){
+        const {REACT_APP_URL} = process.env
         const {isLoading, books, genres, authors, pageInfo} = this.props.fetchData
         const {role} = this.props.auth
 
